@@ -17,6 +17,7 @@ export const useCatFetcher = ({ baseUrl }: Props) => {
   const _fetcher = async ({ color, text }: FetchParams) => {
     try {
       setError(null);
+      setBlobUrl("");
       setLoading(() => true);
       const res = await fetch(`${baseUrl}/says/${text}?color=${color}`);
       const imageBlob = await res.blob();
