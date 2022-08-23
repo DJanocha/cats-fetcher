@@ -28,11 +28,11 @@ export const useCatsForm = ({ debounceTimeInMs }: Props) => {
   );
   const Component = () => (
     <Formik<FormInputType>
-      onSubmit={(values) => setData(values)}
+      onSubmit={(values) => debouncedUpdateDataOnFormValuesChange(values)}
       initialValues={data}
     >
-      {({ values }) => (
-        <Form onChange={() => debouncedUpdateDataOnFormValuesChange(values)}>
+      {({ submitForm }) => (
+        <Form onChange={submitForm}>
           <div className={styles.form}>
             <div className={styles.formOption}>
               <label>Text</label>
@@ -43,22 +43,16 @@ export const useCatsForm = ({ debounceTimeInMs }: Props) => {
               <label>Color</label>
               <div className={styles.formSuboptions}>
                 <div>
-                  <div>
-                    <Field type="radio" id="red" value="red" name="color" />
-                    <label htmlFor="red">red</label>
-                  </div>
+                  <Field type="radio" id="red" value="red" name="color" />
+                  <label htmlFor="red">red</label>
                 </div>
                 <div>
-                  <div>
-                    <Field type="radio" id="green" value="green" name="color" />
-                    <label htmlFor="green">green</label>
-                  </div>
+                  <Field type="radio" id="green" value="green" name="color" />
+                  <label htmlFor="green">green</label>
                 </div>
                 <div>
-                  <div>
-                    <Field type="radio" id="blue" value="blue" name="color" />
-                    <label htmlFor="blue">blue</label>
-                  </div>
+                  <Field type="radio" id="blue" value="blue" name="color" />
+                  <label htmlFor="blue">blue</label>
                 </div>
               </div>
             </div>
