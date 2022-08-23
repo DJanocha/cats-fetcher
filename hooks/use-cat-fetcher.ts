@@ -2,6 +2,7 @@ import debounce from "lodash.debounce";
 import React, { Reducer } from "react";
 
 import type { Color } from "../components/cats-displayer";
+import { FormInputType } from "../pages";
 
 type Props = {
   baseUrl: string;
@@ -25,7 +26,7 @@ type Action =
   | { type: "ERROR"; error: Error };
 
 export const useCatFetcher = ({ baseUrl, debounceTimeInMs }: Props) => {
-  const lastCalled = React.useRef<number>(0);
+  const lastCalled = React.useRef<number>(Date.now());
   const initialState: State = {
     status: "idle",
     error: null,
@@ -57,16 +58,12 @@ export const useCatFetcher = ({ baseUrl, debounceTimeInMs }: Props) => {
   );
 
   const _fetcher = async ({ color, text }: FetchVariables) => {
-    dispatch({ type: "START" });
-    console.log("start fetching: ", Date.now(), new Date().toUTCString());
-    const milisecondsPassed = Date.now() - lastCalled.current;
+    const now = Date.now();
+    const milisecondsPassed = now - lastCalled.current;
     console.log({ milisecondsPassed });
 
-    if (milisecondsPassed > debounceTimeInMs) {
-      lastCalled.current = Date.now();
-      return;
-    }
-
+    dispatch({ type: "START" });
+    console.log("start fetching: ", Date.now(), new Date().toUTCString());
     try {
       const res = await fetch(`${baseUrl}/says/${text}?color=${color}`);
       const imageBlob = await res.blob();
@@ -77,18 +74,16 @@ export const useCatFetcher = ({ baseUrl, debounceTimeInMs }: Props) => {
       dispatch({ type: "ERROR", error });
     }
   };
-  const fetcher = React.useCallback(_fetcher, [baseUrl, debounceTimeInMs]);
+  const fetcher = React.useCallback(_fetcher, [baseUrl]);
 
-  const delayedFetcher = debounce(fetcher, debounceTimeInMs);
-
-  const delayeddebounceddfdfd = (values: FetchVariables) => {
+  const debouncedFetcher = debounce(fetcher, debounceTimeInMs);
+  const _fetcherWithWaiting = (values: FetchVariables) => {
     dispatch({ type: "DELAY" });
-    lastCalled.current = Date.now();
-    console.log("start waiting: ", Date.now(), new Date().toUTCString());
-    delayedFetcher(values);
+    console.log("starting the delay");
   };
+
   return {
     ...state,
-    fetcher: delayeddebounceddfdfd,
+    fetcher: debouncedFetcher,
   };
 };
