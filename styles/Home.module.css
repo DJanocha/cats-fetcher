@@ -1,4 +1,27 @@
-.container {
-  padding: 0 2rem;
-  margin: auto auto;
+.centerBothDir {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.form {
+  display: flex;
+  flex-direction: row;
+}
+
+.formOption {
+  display: flex;
+  flex-direction: column;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.formSuboptions {
+  display: flex;
+  flex-direction: row;
+}
+
+.photo {
+  margin: auto;
 }
