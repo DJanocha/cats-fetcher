@@ -1,36 +1,66 @@
+import React, { useState } from "react";
 import type { NextPage } from "next";
-import React from "react";
-import styles from "../styles/Home.module.css";
+import debounce from "lodash.debounce";
+
 import { CatsDisplayer } from "../components/cats-displayer";
-import { useCatsForm } from "../components/cats-form";
+import { CatsForm } from "../components/cats-form";
+
+import styles from "../styles/Home.module.css";
+import { Field, Form, Formik } from "formik";
 import { useCatFetcher } from "../hooks/use-cat-fetcher";
 
 const baseUrl = "https://cataas.com/cat";
-const Home: NextPage = () => {
-  const {
-    Component: CatsForm,
-    data: { color, text },
-    debouncing,
-  } = useCatsForm({ debounceTimeInMs: 1000 });
-  const { blobUrl, loading, fetcher, error } = useCatFetcher({ baseUrl });
-  const isIdle = !debouncing && !loading && !error && !blobUrl;
-  const isLoading = debouncing || loading;
-  const isLoaded = blobUrl.length > 0;
-  const isError = !!error;
+const debounceTimeInMs = 1000;
 
-  React.useEffect(() => {
-    console.info({ color, text });
-    fetcher({ color, text });
-  }, [color, text, fetcher]);
+export type Color = "red" | "green" | "blue";
+export type FormInputType = {
+  color: Color;
+  text: string;
+};
+const initialFormData: FormInputType = {
+  color: "red",
+  text: "",
+};
+
+const Home: NextPage = () => {
+  const { blobUrl, error, fetcher, status } = useCatFetcher({
+    baseUrl,
+    debounceTimeInMs,
+  });
+
   return (
     <div className={styles.centerBothDir}>
-      <CatsForm />
-      <div>
-        {isIdle && <span>Use form to generate a cat</span>}
-        {isLoading && <span>Loading...</span>}
-        {isLoaded && <CatsDisplayer src={blobUrl} />}
-        {isError && <span>cat could not be generated</span>}
-      </div>
+      <Formik<FormInputType> onSubmit={fetcher} initialValues={initialFormData}>
+        {({ submitForm }) => (
+          <Form onChange={submitForm}>
+            <div className={styles.form}>
+              <div className={styles.formOption}>
+                <label>Text</label>
+                <Field type="text" name="text" />
+              </div>
+
+              <div className={styles.formOption}>
+                <label>Color</label>
+                <div className={styles.formSuboptions}>
+                  <div>
+                    <Field type="radio" id="red" value="red" name="color" />
+                    <label htmlFor="red">red</label>
+                  </div>
+                  <div>
+                    <Field type="radio" id="green" value="green" name="color" />
+                    <label htmlFor="green">green</label>
+                  </div>
+                  <div>
+                    <Field type="radio" id="blue" value="blue" name="color" />
+                    <label htmlFor="blue">blue</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Form>
+        )}
+      </Formik>
+      <CatsDisplayer src={blobUrl} />
     </div>
   );
 };
