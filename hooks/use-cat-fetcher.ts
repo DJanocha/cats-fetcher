@@ -1,5 +1,5 @@
 import debounce from "lodash.debounce";
-import React, { Reducer } from "react";
+import React, { Reducer, useCallback, useMemo } from "react";
 
 import type { Color } from "../components/cats-displayer";
 import { FormInputType } from "../pages";
@@ -24,6 +24,20 @@ type Action =
   | { type: "START" }
   | { type: "READY"; blobUrl: string }
   | { type: "ERROR"; error: Error };
+
+export const renderMessage = (status: State["status"]): string => {
+  switch (status) {
+    case "error":
+      return "Cat could not be generated";
+    case "idle":
+      return "Use form to generate a cat";
+    case "loading":
+    case "waiting":
+      return "Loading...";
+    default:
+      return "";
+  }
+};
 
 export const useCatFetcher = ({ baseUrl, debounceTimeInMs }: Props) => {
   const lastCalled = React.useRef<number>(Date.now());
@@ -60,30 +74,56 @@ export const useCatFetcher = ({ baseUrl, debounceTimeInMs }: Props) => {
   const _fetcher = async ({ color, text }: FetchVariables) => {
     const now = Date.now();
     const milisecondsPassed = now - lastCalled.current;
-    console.log({ milisecondsPassed });
 
     dispatch({ type: "START" });
-    console.log("start fetching: ", Date.now(), new Date().toUTCString());
     try {
       const res = await fetch(`${baseUrl}/says/${text}?color=${color}`);
       const imageBlob = await res.blob();
       const imageObjectUrl = URL.createObjectURL(imageBlob);
       dispatch({ type: "READY", blobUrl: imageObjectUrl });
-      console.log("DONE fetching:", Date.now(), new Date().toUTCString());
     } catch (error: any) {
       dispatch({ type: "ERROR", error });
     }
   };
   const fetcher = React.useCallback(_fetcher, [baseUrl]);
-
   const debouncedFetcher = debounce(fetcher, debounceTimeInMs);
-  const _fetcherWithWaiting = (values: FetchVariables) => {
-    dispatch({ type: "DELAY" });
-    console.log("starting the delay");
-  };
 
+  // const _fetcherWithWaiting = (values: FetchVariables) => {
+  //   dispatch({ type: "DELAY" });
+  // };
+  console.log("usecatfetcher");
+  const triggerLoading = React.useCallback(() => {
+    dispatch({ type: "DELAY" });
+  }, []);
+
+  // const _both = async (values: FetchVariables) => {
+  //   triggerLoading();
+  //   await debouncedFetcher(values);
+  // };
+  // const both = React.useCallback(_both, [debouncedFetcher]);
+
+  // const maybeThat = (values: FetchVariables) => React.useMemo(()=>{
+  //   triggerLoading();
+  //   debouncedFetcher(values)
+  // },[])
+  // const maybeThat = React.useMemo(
+  //   () => (values: FetchVariables) => {
+  //     triggerLoading();
+  //     debouncedFetcher(values);
+  //   },
+  //   [debouncedFetcher]
+  // );
+
+  const whatAbout = useCallback((values: FetchVariables) => {
+    triggerLoading();
+    debouncedFetcher(values);
+  }, []);
   return {
     ...state,
+    // fetcher: debouncedFetcher, // ALMOST work because doesn't use 'loading' state from debouncing, only from waiting for api response
+    // fetcher: both, // doesnt work because fires multiple api calls in parallel
+    // fetcher: maybeThat,
     fetcher: debouncedFetcher,
+    triggerLoading: whatAbout,
   };
 };

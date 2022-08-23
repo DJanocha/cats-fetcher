@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import type { NextPage } from "next";
 import debounce from "lodash.debounce";
+import { Field, Form, Formik } from "formik";
+import { useCatFetcher, renderMessage } from "../hooks/use-cat-fetcher";
 
 import { CatsDisplayer } from "../components/cats-displayer";
-import { CatsForm } from "../components/cats-form";
-
 import styles from "../styles/Home.module.css";
-import { Field, Form, Formik } from "formik";
-import { useCatFetcher } from "../hooks/use-cat-fetcher";
 
 const baseUrl = "https://cataas.com/cat";
 const debounceTimeInMs = 1000;
@@ -23,7 +21,7 @@ const initialFormData: FormInputType = {
 };
 
 const Home: NextPage = () => {
-  const { blobUrl, error, fetcher, status } = useCatFetcher({
+  const { blobUrl, error, fetcher, status, triggerLoading } = useCatFetcher({
     baseUrl,
     debounceTimeInMs,
   });
@@ -31,8 +29,8 @@ const Home: NextPage = () => {
   return (
     <div className={styles.centerBothDir}>
       <Formik<FormInputType> onSubmit={fetcher} initialValues={initialFormData}>
-        {({ submitForm }) => (
-          <Form onChange={submitForm}>
+        {({ submitForm, values }) => (
+          <Form onChange={() => triggerLoading(values)}>
             <div className={styles.form}>
               <div className={styles.formOption}>
                 <label>Text</label>
@@ -60,7 +58,11 @@ const Home: NextPage = () => {
           </Form>
         )}
       </Formik>
-      <CatsDisplayer src={blobUrl} />
+      {status === "success" ? (
+        <CatsDisplayer src={blobUrl} />
+      ) : (
+        renderMessage(status)
+      )}
     </div>
   );
 };
