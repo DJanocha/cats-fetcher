@@ -1,14 +1,10 @@
 import React, { useState } from "react";
 import type { NextPage } from "next";
-import debounce from "lodash.debounce";
 import { Field, Form, Formik } from "formik";
 import { useCatFetcher, renderMessage } from "../hooks/use-cat-fetcher";
 
 import { CatsDisplayer } from "../components/cats-displayer";
 import styles from "../styles/Home.module.css";
-
-const baseUrl = "https://cataas.com/cat";
-const debounceTimeInMs = 1000;
 
 export type Color = "red" | "green" | "blue";
 export type FormInputType = {
@@ -21,16 +17,14 @@ const initialFormData: FormInputType = {
 };
 
 const Home: NextPage = () => {
-  const { blobUrl, error, fetcher, status, triggerLoading } = useCatFetcher({
-    baseUrl,
-    debounceTimeInMs,
-  });
+  const { blobUrl, fetcher, status } = useCatFetcher();
+  console.log({ status });
 
   return (
     <div className={styles.centerBothDir}>
       <Formik<FormInputType> onSubmit={fetcher} initialValues={initialFormData}>
-        {({ submitForm, values }) => (
-          <Form onChange={() => triggerLoading(values)}>
+        {({ submitForm }) => (
+          <Form onChange={submitForm}>
             <div className={styles.form}>
               <div className={styles.formOption}>
                 <label>Text</label>
